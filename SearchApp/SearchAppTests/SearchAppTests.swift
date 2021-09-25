@@ -18,16 +18,34 @@ class SearchAppTests: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
-    func testExample() throws {
+    func testSearchResultsFetching() {
         // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-    }
-
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
+        
+        var fetchCatsExpectations: XCTestExpectation?
+        
+        let viewModel = SearchViewModel()
+        
+        viewModel.viewModelCallbacks.bind { result in
+            
+            if let message = result as? SearchMessages,
+               message ==  .newDataAvailable {
+                
+                fetchCatsExpectations?.fulfill()
+            }
+        }
+        
+        let searchText = "Texas Ranger"
+        
+        XCTContext.runActivity(named: "Fetch search results for \(searchText)") { _ in
+            
+            waitForTimeout(for: 10,
+                           callback: { (expectation) in
+                            fetchCatsExpectations = expectation
+                
+                viewModel.getFreshSearchResults(forSearchText: searchText)
+            })
         }
     }
 
+    
 }
